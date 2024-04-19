@@ -3,6 +3,9 @@ import numpy as np
 import dlib
 from imutils import face_utils
 from pygame import mixer
+import matplotlib.pyplot as plt
+from tkinter import *
+from tkinter import ttk
 
 def Mx():
     mixer.init()
@@ -139,17 +142,59 @@ def Mx():
         grade = 'A (Fully Awake)'
 
     rtnx = {
-        "Closed Eye Count " : f"{closed_eye_count}",
+        "Closed Eye Count" : f"{closed_eye_count}",
         "Open Eye Count" : f"{total_frame_count - closed_eye_count}",
         "Total Frames" : f"{total_frame_count}",
-        "Awake Percentage" : f"{(100-sleepy_percentage):.2f}%",
-        "Drowsy/Sleep Percentage" : f"{sleepy_percentage:.2f}%",
+        "Awake Percentage" : f"{(100-sleepy_percentage):.2f}",
+        "Drowsy/Sleep Percentage" : f"{sleepy_percentage:.2f}",
         "Grade" : grade
     }
 
     return(rtnx)
 
+def UI(data):
+    root = Tk()
+    root.title("Ride Overview Dashboard")
+    root.configure(bg='white')
+
+    for i, (key, value) in enumerate(data.items()):
+        label = Label(root, text=f"{key}: {value}", font=("Helvetica", 12), bg='white', fg='black', padx=10, pady=5)
+        label.grid(row=i, column=0, sticky=W)
+
+    fig, ax = plt.subplots()
+    ax.pie([data['Awake Percentage'], data['Drowsy/Sleep Percentage']],
+        labels=['Awake', 'Drowsy/Sleep'],
+        autopct='%1.1f%%',
+        startangle=90,
+        colors=['#66c2a5', '#fc8d62'])
+    ax.axis('equal')
+    plt.title('Drowsiness Overview', fontsize=14, fontweight='bold')
+    plt.savefig('pie_chart.png')
+
+    plt.figure(figsize=(6, 4))
+    plt.bar(['Closed Eye', 'Open Eye'], [data['Closed Eye Count'], data['Open Eye Count']], color=['#66c2a5', '#fc8d62'])
+    plt.xlabel('Eye State', fontsize=12)
+    plt.ylabel('Count', fontsize=12)
+    plt.title('Eye State Overview', fontsize=14, fontweight='bold')
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
+    plt.savefig('bar_chart.png')
+
+    pie_chart = PhotoImage(file='pie_chart.png')
+    bar_chart = PhotoImage(file='bar_chart.png')
+
+    chart_frame = ttk.Frame(root, padding=(10, 10))
+    chart_frame.grid(row=len(data), columnspan=2)
+
+    pie_label = Label(chart_frame, image=pie_chart)
+    pie_label.grid(row=0, column=0, padx=10, pady=10)
+
+    bar_label = Label(chart_frame, image=bar_chart)
+    bar_label.grid(row=0, column=1, padx=10, pady=10)
+
+    root.mainloop()
+
+
 if __name__ == "__main__":
     results = Mx()
-    for i in results: 
-        print(f"{i}\t\t{results[i]}")
+    UI(results)
