@@ -1,6 +1,0 @@
-twilio_number = +18053514378
-account_sid = ACada6b96e1053fc2a24eb5be1a1fb8908
-auth_token = 8048f676c3f3a13f509fd83b5e96a39f
-
-Authorized Numbers 
-# +91-8618856297
