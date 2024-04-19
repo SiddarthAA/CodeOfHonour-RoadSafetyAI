@@ -1,13 +1,25 @@
 from PyQt5 import QtWidgets, QtCore
 import pyqtgraph as pg
-import sys  
+import sys
 import websocket
 import json
+import time
 import threading
-from twilio.rest import Client
+import time
+import pygame
+import secrets
+import string
 from Alert import SOS
+from geopy.geocoders import Nominatim
 
 background_color = "#fafafa"
+
+def get_current_coordinates():
+    geolocator = Nominatim(user_agent="geoapiExercises")
+    location = geolocator.geocode("India")
+    return (location.latitude, location.longitude)
+
+latitude, longitude = get_current_coordinates()
 
 class Sensor:
     def __init__(self, address, sensor_type):
@@ -17,29 +29,41 @@ class Sensor:
         self.y_data = []
         self.z_data = []
         self.time_data = []
+        self.gyro_x_data = []
+        self.gyro_y_data = []
+        self.gyro_z_data = []
         self.z_threshold = 18.0
         self.y_gyro_threshold = 14.0
-        self.acc_z= False
+        self.acc_z = False
         self.gyro_y = False
 
     def on_message(self, ws, message):
         values = json.loads(message)['values']
         timestamp = json.loads(message)['timestamp']
 
-        self.x_data.append(values[0])
-        self.y_data.append(values[1])
-        self.z_data.append(values[2])
-        self.time_data.append(float(timestamp/1000000))
+        if self.sensor_type == "android.sensor.accelerometer":
+            self.x_data.append(values[0])
+            self.y_data.append(values[1])
+            self.z_data.append(values[2])
+        elif self.sensor_type == "android.sensor.gyroscope":
+            self.gyro_x_data.append(values[0])
+            self.gyro_y_data.append(values[1])
+            self.gyro_z_data.append(values[2])
+
+        self.time_data.append(float(timestamp / 1000000))
 
     def on_error(self, ws, error):
-        print("Error occurred")
-        print(error)
+        print("\n")
+        print("\033[1;31;40mConnection closed\033[m")
 
     def on_close(self, ws):
-        print("Connection closed")
+        print("\n")
+        print("\033[1;31;40mConnection closed\033[m")
+
 
     def on_open(self, ws):
-        print(f"Connected to: {self.address}")
+        print("\n")
+        print(f"\033[1;32;40mConnected to {self.sensor_type}\033[m")
 
     def make_websocket_connection(self):
         ws = websocket.WebSocketApp(f"ws://{self.address}/sensor/connect?type={self.sensor_type}",
@@ -89,22 +113,86 @@ class MainWindow(QtWidgets.QMainWindow):
         self.y_data_line.setData(self.time_data[limit:], self.y_data[limit:])
         self.z_data_line.setData(self.time_data[limit:], self.z_data[limit:])
 
+        accel_change = False
+        gyro_change = False
 
-sensor1 = Sensor(address="172.16.128.69:8080", sensor_type="android.sensor.accelerometer")
-sensor2 = Sensor(address="172.16.128.69:8080", sensor_type="android.sensor.gyroscope")
+        if len(sensor1.x_data) > 1 and len(sensor1.y_data) > 1 and len(sensor1.z_data) > 1:
+            x_diff = abs(sensor1.x_data[-1] - sensor1.x_data[-2])
+            y_diff = abs(sensor1.y_data[-1] - sensor1.y_data[-2])
+            z_diff = abs(sensor1.z_data[-1] - sensor1.z_data[-2])
+
+            if x_diff > 10 or y_diff > 10 or z_diff > 10:
+                accel_change = True
+
+        if len(sensor2.gyro_x_data) > 1 and len(sensor2.gyro_y_data) > 1 and len(sensor2.gyro_z_data) > 1:
+            gyro_x_diff = abs(sensor2.gyro_x_data[-1] - sensor2.gyro_x_data[-2])
+            gyro_y_diff = abs(sensor2.gyro_y_data[-1] - sensor2.gyro_y_data[-2])
+            gyro_z_diff = abs(sensor2.gyro_z_data[-1] - sensor2.gyro_z_data[-2])
+
+            if gyro_x_diff > 10 or gyro_y_diff > 10 or gyro_z_diff > 10:
+                gyro_change = True
+
+        if accel_change and gyro_change:
+            x,y = get_current_coordinates()
+            time.sleep(5)
+            w,z = get_current_coordinates()
+            if x==w and y==z:
+                return True
+            else:
+                pass
+            print("\n")
+            print("\033[1;33;40m-------------------------------------------\033[0m")
+            print("\033[1;33;40m|           Co-Ordinates Verified          |\033[0m")
+            print("\033[1;33;40m|              Potential Crash             |\033[0m")
+            print("\033[1;33;40m-------------------------------------------\033[0m")
+            handle_crash_detection()
 
 
-sensor1.connect()
-sensor2.connect()
+def handle_crash_detection():
+    try:
+        alarm_sound.play()
 
+        def countdown_animation(seconds):
+            for i in range(seconds, 0, -1):
+                sys.stdout.write("\r")
+                sys.stdout.write(f"{i} Seconds Remaining For Emergency Call |{'=' * i}{' ' * (seconds - i)}|")
+                sys.stdout.flush()
+                time.sleep(1)
+            sys.stdout.write("\n")
 
-app = QtWidgets.QApplication(sys.argv)
-window1 = MainWindow(sensor_type="Accelerometer", x_data=sensor1.x_data, y_data=sensor1.y_data, z_data=sensor1.z_data, time_data=sensor1.time_data)
-window2 = MainWindow(sensor_type="Gyroscope", x_data=sensor2.x_data, y_data=sensor2.y_data, z_data=sensor2.z_data, time_data=sensor2.time_data)
-window1.show()
-window2.show()
+        countdown_animation(10)
 
+        while pygame.mixer.get_busy():
+            pygame.time.wait(100)
 
+        id = SOS()
+        x = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(4))
+        tmpz = x.upper()
+        print("\n")
+        print("\033[1;31;40m-------------------------------------------\033[0m")
+        print("\033[1;31;40m|          Initiating Emergency Call      |\033[0m")
+        print("\033[1;31;40m-------------------------------------------\033[0m")        
+        time.sleep(100)
+    except KeyboardInterrupt:
+        print("\n")
+        print("\033[1;34;40mCancelled Emergency Call!\033[0m")
+        pygame.mixer.music.stop()
 
+if __name__ == "__main__":
+    pygame.display.set_mode((1, 1))
+    pygame.init()
+    alarm_sound = pygame.mixer.Sound('C:\\Users\\siddu\\Desktop\\x\\Module-y\\Alarm.mp3')
 
-sys.exit(app.exec_())
+    sensor1 = Sensor(address="172.16.128.69:8080", sensor_type="android.sensor.accelerometer")
+    sensor2 = Sensor(address="172.16.128.69:8080", sensor_type="android.sensor.gyroscope")
+
+    sensor1.connect()
+    sensor2.connect()
+
+    app = QtWidgets.QApplication(sys.argv)
+    window1 = MainWindow(sensor_type="Accelerometer", x_data=sensor1.x_data, y_data=sensor1.y_data, z_data=sensor1.z_data, time_data=sensor1.time_data)
+    window2 = MainWindow(sensor_type="Gyroscope", x_data=sensor2.gyro_x_data, y_data=sensor2.gyro_y_data, z_data=sensor2.gyro_z_data, time_data=sensor2.time_data)
+    window1.show()
+    window2.show()
+
+    sys.exit(app.exec_())
