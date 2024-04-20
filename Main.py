@@ -458,18 +458,18 @@ def open_driver_details_window():
     driver_details_window = tk.Toplevel()
     driver_details_window.title("Driver Details")
     driver_details_window.geometry("400x300")
-    driver_details_window.configure(bg="white")
+    driver_details_window.configure(bg="#f0f0f0")  # Set a light gray background
 
-    # Driver details
-    tk.Label(driver_details_window, text="Driver Name: John Doe", bg="white").pack()
-    tk.Label(driver_details_window, text="Phone Number: 1234567890", bg="white").pack()
-    tk.Label(driver_details_window, text="Trip Details:", bg="white").pack()
-    tk.Label(driver_details_window, text="Start: Location A", bg="white").pack()
-    tk.Label(driver_details_window, text="Stop: Location B", bg="white").pack()
-    tk.Label(driver_details_window, text="Scheduled Stops: 2", bg="white").pack()
+    # Driver details with a modern font and larger text size
+    tk.Label(driver_details_window, text="Driver Name: Kushal B", bg="#f0f0f0", font=("Helvetica", 14)).pack()
+    tk.Label(driver_details_window, text="Phone Number: 8618856297", bg="#f0f0f0", font=("Helvetica", 14)).pack()
+    tk.Label(driver_details_window, text="Trip Details:", bg="#f0f0f0", font=("Helvetica", 14)).pack()
+    tk.Label(driver_details_window, text="Start: PES University", bg="#f0f0f0", font=("Helvetica", 14)).pack()
+    tk.Label(driver_details_window, text="Stop: Banashankri Metro Station", bg="#f0f0f0", font=("Helvetica", 14)).pack()
+    tk.Label(driver_details_window, text="Scheduled Stops: 1", bg="#f0f0f0", font=("Helvetica", 14)).pack()
 
-    # Start Ride button
-    tk.Button(driver_details_window, text="Start Ride", command=Main).pack()
+    # Start Ride button with a modern design
+    tk.Button(driver_details_window, text="Start Ride", command=Main, bg="#4CAF50", fg="white", font=("Helvetica", 16), padx=10, pady=5).pack()
 
     # Set window position
     driver_details_window.transient(root)
@@ -478,17 +478,18 @@ def open_driver_details_window():
 
 root = tk.Tk()
 root.title("Driver Login")
-root.configure(bg="white")
+root.configure(bg="#f0f0f0")  # Set a light gray background
 
 # Background image
-bg_image = tk.PhotoImage(file="")
-bg_label = tk.Label(root, image=bg_image)
-bg_label.place(relwidth=1, relheight=1)
+# Replace "" with the path to your background image
+# bg_image = tk.PhotoImage(file="")
+# bg_label = tk.Label(root, image=bg_image)
+# bg_label.place(relwidth=1, relheight=1)
 
-verify_button = tk.Button(root, text="Verify Rider", command=scan_qr_code)
+verify_button = tk.Button(root, text="Verify Rider", command=scan_qr_code, bg="#2196F3", fg="white", font=("Helvetica", 16), padx=10, pady=5)
 verify_button.pack()
 
-login_label = tk.Label(root, text="")
+login_label = tk.Label(root, text="", bg="#f0f0f0")
 login_label.pack()
 
 root.bind("<space>", scan_qr_code)
