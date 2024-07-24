@@ -1,7 +1,3 @@
-Here's an updated `README` file incorporating a flow chart and directory structure. I’ll describe the flow chart in text and provide an ASCII representation. You can also use graphical tools like draw.io or Lucidchart to create a more polished version.
-
----
-
 # 🚛 RoadSafetyAI 🛣️
 
 **RoadSafetyAI** is an advanced road safety solution designed to enhance the safety of cargo and logistics transportation. It leverages cutting-edge machine learning algorithms and real-time hazard detection technologies to ensure safer roads and more efficient emergency responses.
